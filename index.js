@@ -43,7 +43,7 @@ async function default_1(req, res, options) {
         }
     });
     // @ts-ignore
-    const upload = Multer[_options.method].apply(null, _options.args);
+    const upload = Multer[_options.method](..._options.args);
     return new Promise((resolve, reject) => {
         upload(req, res, (err) => {
             if (err) {
