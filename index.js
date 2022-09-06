@@ -1,74 +1,77 @@
-const multer = require('multer')
-
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const multer_1 = __importDefault(require("multer"));
 /**
  * UPLOADER
- * @param req {object}
- * @param res {object}
- * @param options {{
- *  method: 'single'|'array'|'fields'|'none'|'any'?,
- *  args: any[]?,
- *  storage: {
- *   dist: string?,
- *   type: 'diskStorage'|'memoryStorage'?
- *  }?,
- *  settings: {
- *    maxSize: number?,
- *    extensions: string[]?
- *  }?
- * }?}
+ * @param req {express.Request}
+ * @param res {express.Response}
+ * @param options {IOptions?}
  * @return {Promise<any>}
  */
-module.exports = async (req, res, options = {}) => {
-  options.method ||= 'any'
-  options.args ||= []
-  options.storage ||= {
-    type: 'memoryStorage'
-  }
-
-  const Multer = await multer({
-    get storage() {
-      switch (options.storage.type) {
-        case 'memoryStorage':
-          return multer.memoryStorage()
-
-        case 'diskStorage':
-          return multer.diskStorage({
-            destination: function (req, file, cb) {
-              cb(null, options.storage.dist)
-            },
-            filename: function (req, file, cb) {
-              cb(null, Date.now() + '-' + file.originalname)
+async function default_1(req, res, options) {
+    const _options = getOptions(options);
+    const Multer = (0, multer_1.default)({
+        get storage() {
+            switch (_options.storage.type) {
+                case 'memoryStorage':
+                    return multer_1.default.memoryStorage();
+                case 'diskStorage':
+                    return multer_1.default.diskStorage({
+                        destination(req, file, cb) {
+                            cb(null, _options.storage.dist);
+                        },
+                        filename(req, file, cb) {
+                            cb(null, Date.now() + '-' + file.originalname);
+                        }
+                    });
             }
-          })
-      }
-    },
-    limits: {
-      fileSize: options.settings?.maxSize ? 1024 * 1024 * options.settings.maxSize : Infinity
-    },
-    fileFilter(req, file, cb) {
-      if (options.settings?.extensions) {
-        const regex = new RegExp(options.settings.extensions.join('|'), 'i')
-
-        if (!file.originalname.match(regex)) {
-          cb(Error('wrong_format'))
+        },
+        limits: {
+            fileSize: _options.settings?.maxSize ? 1024 * 1024 * _options.settings.maxSize : Infinity
+        },
+        fileFilter(req, file, cb) {
+            if (_options.settings?.extensions) {
+                const regex = new RegExp(_options.settings.extensions.join('|'), 'i');
+                if (!file.originalname.match(regex)) {
+                    cb(Error('Wrong format'));
+                }
+            }
+            cb(null, true);
         }
-      }
-
-      cb(null, true)
-    }
-  })
-
-  const upload = Multer[options.method](...options.args)
-
-  return new Promise((resolve, reject) => {
-    upload(req, res, (err) => {
-      if (err) {
-        reject(err)
-      } else {
-        const data = req[options.method === 'single' ? 'file' : 'files']
-
-        resolve(options.storage.type === 'memoryStorage' ? data.buffer : data)
-      }
-    })
-  })
+    });
+    // @ts-ignore
+    const upload = Multer[_options.method].apply(null, _options.args);
+    return new Promise((resolve, reject) => {
+        upload(req, res, (err) => {
+            if (err) {
+                reject(err);
+            }
+            else {
+                resolve(req[_options.method === 'single' ? 'file' : 'files']);
+            }
+        });
+    });
+}
+exports.default = default_1;
+/**
+ * GET-OPTIONS
+ * @param options {IOptions | undefined}
+ * @return {TOptions}
+ */
+function getOptions(options) {
+    const _options = {};
+    if (options)
+        Object.assign(_options, options);
+    if (!_options.method)
+        _options.method = 'any';
+    if (!_options.args)
+        _options.args = [];
+    if (!_options.storage)
+        _options.storage = {};
+    if (!_options.storage.type)
+        _options.storage.type = 'memoryStorage';
+    return _options;
 }
