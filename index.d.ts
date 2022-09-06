@@ -7,4 +7,4 @@ import { IOptions } from './interfaces';
  * @param options {IOptions?}
  * @return {Promise<any>}
  */
-export default function (req: express.Request, res: express.Response, options?: IOptions): Promise<unknown>;
+export default function (req: express.Request, res: express.Response, options?: IOptions): Promise<any>;
