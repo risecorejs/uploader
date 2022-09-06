@@ -11,7 +11,7 @@ import { TOptions } from './types'
  * @param options {IOptions?}
  * @return {Promise<any>}
  */
-export default async function (req: express.Request, res: express.Response, options?: IOptions) {
+export default async function (req: express.Request, res: express.Response, options?: IOptions): Promise<any> {
   const _options = getOptions(options)
 
   const Multer = multer({
