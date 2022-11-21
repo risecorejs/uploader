@@ -15,6 +15,22 @@ export default async function (req: express.Request, res: express.Response, opti
   const _options = getOptions(options)
 
   const Multer = multer({
+    limits: {
+      fileSize: _options.settings?.maxSize ? 1024 * 1024 * _options.settings.maxSize : Infinity
+    },
+    fileFilter(req, file, cb) {
+      file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8')
+
+      if (_options.settings?.extensions) {
+        const regex = new RegExp(_options.settings.extensions.join('|'), 'i')
+
+        if (!file.originalname.match(regex)) {
+          cb(Error('Wrong format'))
+        }
+      }
+
+      cb(null, true)
+    },
     get storage() {
       switch (_options.storage.type) {
         case 'memoryStorage':
@@ -30,20 +46,6 @@ export default async function (req: express.Request, res: express.Response, opti
             }
           })
       }
-    },
-    limits: {
-      fileSize: _options.settings?.maxSize ? 1024 * 1024 * _options.settings.maxSize : Infinity
-    },
-    fileFilter(req, file, cb) {
-      if (_options.settings?.extensions) {
-        const regex = new RegExp(_options.settings.extensions.join('|'), 'i')
-
-        if (!file.originalname.match(regex)) {
-          cb(Error('Wrong format'))
-        }
-      }
-
-      cb(null, true)
     }
   })
 

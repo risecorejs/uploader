@@ -14,6 +14,19 @@ const multer_1 = __importDefault(require("multer"));
 async function default_1(req, res, options) {
     const _options = getOptions(options);
     const Multer = (0, multer_1.default)({
+        limits: {
+            fileSize: _options.settings?.maxSize ? 1024 * 1024 * _options.settings.maxSize : Infinity
+        },
+        fileFilter(req, file, cb) {
+            file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
+            if (_options.settings?.extensions) {
+                const regex = new RegExp(_options.settings.extensions.join('|'), 'i');
+                if (!file.originalname.match(regex)) {
+                    cb(Error('Wrong format'));
+                }
+            }
+            cb(null, true);
+        },
         get storage() {
             switch (_options.storage.type) {
                 case 'memoryStorage':
@@ -28,18 +41,6 @@ async function default_1(req, res, options) {
                         }
                     });
             }
-        },
-        limits: {
-            fileSize: _options.settings?.maxSize ? 1024 * 1024 * _options.settings.maxSize : Infinity
-        },
-        fileFilter(req, file, cb) {
-            if (_options.settings?.extensions) {
-                const regex = new RegExp(_options.settings.extensions.join('|'), 'i');
-                if (!file.originalname.match(regex)) {
-                    cb(Error('Wrong format'));
-                }
-            }
-            cb(null, true);
         }
     });
     // @ts-ignore
